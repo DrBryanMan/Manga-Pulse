@@ -1,16 +1,16 @@
 /**
  * Lightweight hash-based SPA router.
- * Routes: '#/' → '/',  '#/series' → '/series', etc.
+ * Підтримує як точні маршрути ('/series'), так і параметричні ('/series/:id').
  */
 export class Router {
-  #routes         = new Map();
-  #fallback       = null;
-  #currentPath    = null;
+  #routes          = new Map();
+  #fallback        = null;
+  #currentPath     = null;
   #changeListeners = [];
 
   /** Register a route handler. Chainable. */
-  on(path, handler) {
-    this.#routes.set(path, handler);
+  on(pattern, handler) {
+    this.#routes.set(pattern, handler);
     return this;
   }
 
@@ -28,8 +28,23 @@ export class Router {
     const path = '/' + hash;
     this.#currentPath = path;
 
-    const handler = this.#routes.get(path) ?? this.#fallback;
-    handler?.(path);
+    // 1. Exact match first (faster)
+    let handler = this.#routes.get(path);
+    let params  = {};
+
+    // 2. Pattern match for :param segments
+    if (!handler) {
+      for (const [pattern, h] of this.#routes) {
+        const matched = matchPath(pattern, path);
+        if (matched !== null) {
+          handler = h;
+          params  = matched;
+          break;
+        }
+      }
+    }
+
+    (handler ?? this.#fallback)?.(path, params);
     this.#changeListeners.forEach(fn => fn(path));
   }
 
@@ -50,6 +65,26 @@ export class Router {
     this.resolve();
     return this;
   }
+}
+
+/**
+ * Matches a URL pattern with :param segments against an actual path.
+ * Returns extracted params object or null if no match.
+ */
+function matchPath(pattern, path) {
+  const pp = pattern.split('/');
+  const sp = path.split('/');
+  if (pp.length !== sp.length) return null;
+
+  const params = {};
+  for (let i = 0; i < pp.length; i++) {
+    if (pp[i].startsWith(':')) {
+      params[pp[i].slice(1)] = decodeURIComponent(sp[i]);
+    } else if (pp[i] !== sp[i]) {
+      return null;
+    }
+  }
+  return params;
 }
 
 export const router = new Router();

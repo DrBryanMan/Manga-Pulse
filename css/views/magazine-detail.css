@@ -1,0 +1,208 @@
+/* ══════════════════════════════════════════════════════
+   MAGAZINE DETAIL — Hero
+══════════════════════════════════════════════════════ */
+.mag-detail-hero {
+  position: relative;
+  padding: 0;
+  margin-bottom: 32px;
+  border-radius: var(--r-xl);
+  border: 1px solid color-mix(in srgb, var(--pub-color) 30%, var(--border-s));
+  background: var(--bg-card);
+  overflow: hidden;
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--pub-color) 8%, transparent);
+}
+
+.mag-detail-accent {
+  height: 4px;
+  background: var(--pub-color);
+}
+
+.mag-detail-content {
+  padding: 28px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mag-detail-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pub-color);
+  background: color-mix(in srgb, var(--pub-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pub-color) 30%, transparent);
+  border-radius: var(--r);
+  padding: 3px 10px;
+  letter-spacing: .05em;
+  align-self: flex-start;
+}
+
+.mag-detail-title {
+  font-family: var(--font-head);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.mag-detail-ja {
+  font-size: 14px;
+  color: var(--text-muted);
+  letter-spacing: .06em;
+  margin-top: -4px;
+}
+
+.mag-detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Stats ─────────────────────────────────────────── */
+.mag-detail-stats {
+  display: flex;
+  gap: 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-s);
+  border-bottom: 1px solid var(--border-s);
+}
+
+.mag-dstat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-right: 28px;
+  margin-right: 28px;
+  border-right: 1px solid var(--border-s);
+}
+
+.mag-dstat:last-child {
+  border-right: none;
+  padding-right: 0;
+  margin-right: 0;
+}
+
+.mag-dstat-val {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+
+.mag-dstat-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Next issue block ──────────────────────────────── */
+.mag-detail-next {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mag-next-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.mag-next-date {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ══════════════════════════════════════════════════════
+   MAGAZINE DETAIL — Grid layout (main + aside)
+══════════════════════════════════════════════════════ */
+.mag-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 28px;
+  align-items: start;
+}
+
+.mag-detail-main  {}
+.mag-detail-aside {}
+
+/* ── Issues list (aside) ───────────────────────────── */
+.mag-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mag-issue-row {
+  display: grid;
+  grid-template-columns: 40px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid transparent;
+  background: var(--bg-card);
+  text-decoration: none;
+  transition: all var(--t);
+  cursor: pointer;
+}
+
+.mag-issue-row:hover {
+  background: var(--bg-card-h);
+  border-color: var(--border-s);
+}
+
+.mag-issue-row.current {
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.mag-issue-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.mag-issue-date {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.mag-issue-series {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════
+   Responsive
+══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .mag-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mag-detail-aside {
+    order: -1;
+  }
+
+  .mag-issues-list { flex-direction: row; flex-wrap: wrap; }
+  .mag-issue-row   { flex: 1; min-width: 160px; }
+}
+
+@media (max-width: 540px) {
+  .mag-detail-content { padding: 20px 18px; }
+  .mag-detail-stats   { flex-wrap: wrap; gap: 16px; }
+  .mag-dstat { border-right: none; padding-right: 0; margin-right: 0; }
+}

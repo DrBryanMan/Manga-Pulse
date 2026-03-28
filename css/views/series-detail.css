@@ -1,0 +1,286 @@
+/* ══════════════════════════════════════════════════════
+   SERIES DETAIL — Hero
+══════════════════════════════════════════════════════ */
+.series-hero {
+  position: relative;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  padding: 32px;
+  margin-bottom: 32px;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border-s);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+/* Blurred poster background */
+.series-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  filter: blur(60px) saturate(0.4);
+  opacity: .18;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="light"] .series-hero-bg { opacity: .08; }
+
+.series-cover {
+  position: relative;
+  z-index: 1;
+  width: 160px;
+  min-width: 160px;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  flex-shrink: 0;
+}
+
+.series-meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.series-name {
+  font-family: var(--font-head);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.series-orig {
+  font-size: 14px;
+  color: var(--text-muted);
+  letter-spacing: .04em;
+}
+
+.series-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.series-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.7;
+  max-width: 560px;
+  margin-top: 4px;
+}
+
+/* ── Stats row ─────────────────────────────────────── */
+.series-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-s);
+}
+
+.series-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-right: 24px;
+  margin-right: 24px;
+  border-right: 1px solid var(--border-s);
+}
+
+.series-stat:last-child {
+  border-right: none;
+  padding-right: 0;
+  margin-right: 0;
+}
+
+.series-stat-val {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.series-stat-lbl {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════════ */
+.tabs { margin-top: 4px; }
+
+.tab-list {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-s);
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  margin-bottom: -1px;
+  transition: all var(--t);
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: var(--bg-card);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  background: var(--bg-card);
+  border-color: var(--border-s);
+  border-bottom-color: var(--bg-card);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ══════════════════════════════════════════════════════
+   CHAPTERS TABLE
+══════════════════════════════════════════════════════ */
+.chapters-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chapter-row {
+  display: grid;
+  grid-template-columns: 56px 1fr auto auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid transparent;
+  background: var(--bg-card);
+  text-decoration: none;
+  transition: all var(--t);
+}
+
+.chapter-row:hover {
+  background: var(--bg-card-h);
+  border-color: var(--border-s);
+}
+
+.chapter-row.latest {
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.ch-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.ch-num.new { color: var(--accent); }
+
+.ch-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ch-pages,
+.ch-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════
+   SCHEDULE / ABOUT CARDS
+══════════════════════════════════════════════════════ */
+.sched-card {
+  padding: 16px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-s);
+  border-radius: var(--r-xl);
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sched-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Day-of-week pills ─────────────────────────────── */
+.day-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.day-pill {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r);
+  border: 1px solid var(--border-s);
+  background: var(--bg-2);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.day-pill.active {
+  background: var(--accent-glow);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════
+   Responsive
+══════════════════════════════════════════════════════ */
+@media (max-width: 680px) {
+  .series-hero { flex-direction: column; align-items: center; text-align: center; }
+  .series-cover { width: 140px; }
+  .series-tags  { justify-content: center; }
+  .series-stats-row { justify-content: center; }
+  .series-desc  { text-align: left; }
+
+  .chapter-row {
+    grid-template-columns: 44px 1fr auto;
+  }
+  .ch-pages,
+  .ch-date { display: none; }
+}
