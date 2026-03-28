@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── Variables ──────────────────────────────────────── */
+:root {
+  --bg:           #0b0f14;
+  --bg-2:         #111620;
+  --bg-card:      #161d2a;
+  --bg-card-h:    #1c2538;
+  --bg-input:     #0d1219;
+  --border:       #2a3347;
+  --border-s:     #1e2840;
+
+  --text:         #e2e8f5;
+  --text-2:       #7d8fa8;
+  --text-muted:   #3d4e64;
+
+  --accent:       #5b8dee;
+  --accent-h:     #7aaaf5;
+  --accent-glow:  #5b8dee22;
+  --gold:         #e2a74a;
+  --gold-dim:     #8a6228;
+  --green:        #3ecf8e;
+  --red:          #f06060;
+  --orange:       #f0943e;
+  --purple:       #a78bfa;
+  --pink:         #f472b6;
+  --cyan:         #22d3ee;
+
+  --font:         'DM Sans', sans-serif;
+  --font-head:    'Syne', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+
+  --r:            6px;
+  --r-lg:         10px;
+  --r-xl:         16px;
+  --t:            150ms ease;
+  --t-slow:       250ms ease;
+  --container:    1140px;
+}
+
+[data-theme="light"] {
+  --bg:           #f2f4f8;
+  --bg-2:         #ffffff;
+  --bg-card:      #ffffff;
+  --bg-card-h:    #edf0f7;
+  --bg-input:     #ffffff;
+  --border:       #d4dae8;
+  --border-s:     #e8ecf5;
+  --text:         #1a2235;
+  --text-2:       #5a6b88;
+  --text-muted:   #9caabb;
+  --accent:       #2563eb;
+  --accent-h:     #1d4ed8;
+  --accent-glow:  #2563eb18;
+  --gold:         #b45309;
+  --green:        #0d9e5e;
+  --red:          #dc2626;
+  --orange:       #c2410c;
+  --purple:       #7c3aed;
+  --pink:         #db2777;
+  --cyan:         #0e7490;
+}
+
+/* ── Reset ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+main { animation: fadeIn .22s ease; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-h); }
+img { display: block; max-width: 100%; }
+button { font-family: var(--font); cursor: pointer; border: none; background: none; }
+
+/* ── Layout ─────────────────────────────────────────── */
+.container   { max-width: var(--container); margin: 0 auto; padding: 0 24px; }
+.hidden      { display: none !important; }
+.page-body   { padding: 32px 0 64px; }
+
+/* ── Fade in ─────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}

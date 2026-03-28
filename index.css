@@ -1,0 +1,10 @@
+@import url('./css/base.css');
+@import url('./css/layout.css');
+@import url('./css/app.css');
+
+/* Сторінки */
+@import url('./css/views/series.css');
+
+/* Компоненти */
+@import url('/css/components/series-filters.css');
+@import url('/css/components/manga-card.css');

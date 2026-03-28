@@ -1,0 +1,106 @@
+.search-filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8f9fa;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.results-count {
+  font-size: 15px;
+  color: #555;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 180px;
+}
+
+.results-count span {
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  max-width: 520px;
+  position: relative;
+  margin: 0 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 20px 12px 48px;
+  border: 2px solid #e0e0e0;
+  border-radius: 50px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+}
+
+.search-button {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.search-button:hover {
+  color: #1a73e8;
+}
+
+.filters-panel {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  padding: 11px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: white;
+  cursor: pointer;
+  min-width: 160px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.filter-select:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+/* Адаптивність */
+@media (max-width: 992px) {
+  .search-filter-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 18px;
+  }
+  
+  .search-input-wrapper {
+    margin: 12px 0;
+    max-width: none;
+  }
+  
+  .results-count {
+    text-align: center;
+  }
+}
