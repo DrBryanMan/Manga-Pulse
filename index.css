@@ -5,6 +5,7 @@
 /* Сторінки */
 @import url('./css/views/home.css');
 @import url('./css/views/series.css');
+@import url('./css/views/magazines.css');
 
 /* Компоненти */
 @import url('./css/components/series-filters.css');
