@@ -24,7 +24,7 @@
   font-family: var(--font-head); font-size: 16px; font-weight: 800; color: #fff;
   box-shadow: 0 0 20px var(--accent-glow);
 }
-.logo-text { font-family: var(--font-head); font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.2; }
+.logo-text { font-family: var(--font-head); font-size: 20px; font-weight: 600; color: var(--text); line-height: 1.2; }
 .logo-text span { color: var(--accent); }
 .logo-sub  { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
 

@@ -51,11 +51,11 @@ export function initShell() {
   app.innerHTML = `
     <header class="site-header">
       <div class="container">
-        <a class="header-logo" href="#/">
-          <div class="logo-mark">M</div>
+        <a class="header-logo" href="index.html">
+          <img class="logo-mark" src="logo-pulse.svg" alt="Manga Pulse">
           <div>
-            <div class="logo-text">Manga<span>Cal</span></div>
-            <div class="logo-sub">Календар виходу серій</div>
+            <div class="logo-text">Manga <span>Pulse</span></div>
+            <div class="logo-sub">マンガパルス</div>
           </div>
         </a>
 
