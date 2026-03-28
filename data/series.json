@@ -1,9 +1,134 @@
 [
-    {
-        "poster": "https://cdn.myanimelist.net/images/manga/2/253146.jpg",
-        "title": "One Piece",
-        "title_ua": "Ван Піс",
-        "magazine_slug": "wsj",
-        "score": 9.21
-    }
+  {
+    "id": "one-piece",
+    "poster": "https://cdn.myanimelist.net/images/manga/2/253146.jpg",
+    "title": "One Piece",
+    "title_ua": "Ван Піс",
+    "magazine_slug": "wsj",
+    "score": 9.21,
+    "chapter": 1115,
+    "status": "active",
+    "next_chapter_date": "today"
+  },
+  {
+    "id": "chainsaw-man",
+    "poster": "https://cdn.myanimelist.net/images/manga/3/216464.jpg",
+    "title": "Chainsaw Man",
+    "title_ua": "Людина-бензопила",
+    "magazine_slug": "sj-plus",
+    "score": 8.94,
+    "chapter": 192,
+    "status": "active",
+    "next_chapter_date": "today"
+  },
+  {
+    "id": "jujutsu-kaisen",
+    "poster": "https://cdn.myanimelist.net/images/manga/3/210341.jpg",
+    "title": "Jujutsu Kaisen",
+    "title_ua": "Магічна битва",
+    "magazine_slug": "wsj",
+    "score": 8.74,
+    "chapter": 266,
+    "status": "active",
+    "next_chapter_date": "today"
+  },
+  {
+    "id": "dandadan",
+    "poster": "https://cdn.myanimelist.net/images/manga/3/231948.jpg",
+    "title": "Dandadan",
+    "title_ua": "Дандадан",
+    "magazine_slug": "sj-plus",
+    "score": 8.68,
+    "chapter": 183,
+    "status": "active",
+    "next_chapter_date": "today"
+  },
+  {
+    "id": "spy-x-family",
+    "poster": "https://cdn.myanimelist.net/images/manga/3/219741.jpg",
+    "title": "Spy × Family",
+    "title_ua": "Родина шпигуна",
+    "magazine_slug": "sj-plus",
+    "score": 8.61,
+    "chapter": 113,
+    "status": "active",
+    "next_chapter_date": "today"
+  },
+  {
+    "id": "my-hero-academia",
+    "poster": "https://cdn.myanimelist.net/images/manga/1/209370.jpg",
+    "title": "My Hero Academia",
+    "title_ua": "Моя геройська академія",
+    "magazine_slug": "wsj",
+    "score": 7.82,
+    "chapter": 429,
+    "status": "active",
+    "next_chapter_date": "2026-03-28"
+  },
+  {
+    "id": "kaiju-no-8",
+    "poster": "https://cdn.myanimelist.net/images/manga/1/229361.jpg",
+    "title": "Kaiju No. 8",
+    "title_ua": "Кайдзю №8",
+    "magazine_slug": "sj-plus",
+    "score": 8.15,
+    "chapter": 112,
+    "status": "active",
+    "next_chapter_date": "2026-03-28"
+  },
+  {
+    "id": "vinland-saga",
+    "poster": "https://cdn.myanimelist.net/images/manga/2/188925.jpg",
+    "title": "Vinland Saga",
+    "title_ua": "Сага про Вінланд",
+    "magazine_slug": "morning",
+    "score": 8.89,
+    "chapter": 213,
+    "status": "active",
+    "next_chapter_date": "2026-03-29"
+  },
+  {
+    "id": "berserk",
+    "poster": "https://cdn.myanimelist.net/images/manga/1/157897.jpg",
+    "title": "Berserk",
+    "title_ua": "Берсерк",
+    "magazine_slug": "young-animal",
+    "score": 9.45,
+    "chapter": 374,
+    "status": "hiatus",
+    "next_chapter_date": null
+  },
+  {
+    "id": "vagabond",
+    "poster": "https://cdn.myanimelist.net/images/manga/1/259070.jpg",
+    "title": "Vagabond",
+    "title_ua": "Вагабонд",
+    "magazine_slug": "morning",
+    "score": 9.38,
+    "chapter": 327,
+    "status": "active",
+    "next_chapter_date": "2026-03-29"
+  },
+  {
+    "id": "demon-slayer",
+    "poster": "https://cdn.myanimelist.net/images/manga/3/179023.jpg",
+    "title": "Demon Slayer",
+    "title_ua": "Клинок, що знищує демонів",
+    "magazine_slug": "wsj",
+    "score": 8.50,
+    "chapter": 205,
+    "status": "done",
+    "next_chapter_date": null
+  },
+  {
+    "id": "sakamoto-days",
+    "poster": "https://cdn.myanimelist.net/images/manga/1/318902.jpg",
+    "title": "Sakamoto Days",
+    "title_ua": "Дні Сакамото",
+    "magazine_slug": "wsj",
+    "score": 8.32,
+    "chapter": 215,
+    "status": "active",
+    "next_chapter_date": "2026-03-30"
+  }
 ]

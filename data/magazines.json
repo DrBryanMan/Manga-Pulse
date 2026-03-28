@@ -1,8 +1,30 @@
 [
-    {
-        "poster": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Weekly_Shonen_Magazine_logo.png",
-        "title": "Weekly Shonen Jump",
-        "publisher": "shueisha",
-        "slug": "wsj"
-    }
+  {
+    "slug": "wsj",
+    "label": "WSJ",
+    "title": "Weekly Shōnen Jump",
+    "publisher": "shueisha",
+    "poster": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Weekly_Shonen_Magazine_logo.png"
+  },
+  {
+    "slug": "sj-plus",
+    "label": "SJ+",
+    "title": "Shōnen Jump+",
+    "publisher": "shueisha",
+    "poster": ""
+  },
+  {
+    "slug": "morning",
+    "label": "Morning",
+    "title": "Morning",
+    "publisher": "kodansha",
+    "poster": ""
+  },
+  {
+    "slug": "young-animal",
+    "label": "Young Animal",
+    "title": "Young Animal",
+    "publisher": "hakusensha",
+    "poster": ""
+  }
 ]

@@ -1,106 +1,205 @@
-.search-filter-container {
+/* ══════════════════════════════════════════════════════
+   SERIES — Filter bar
+══════════════════════════════════════════════════════ */
+
+.filter-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: stretch;
+  background: var(--bg-card);
+  border: 1px solid var(--border-s);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+/* ── Sections ──────────────────────────────────────── */
+.filter-section {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background-color: #f8f9fa;
-  padding: 16px 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
+  padding: 10px 16px;
+  gap: 10px;
+  min-height: 52px;
 }
 
-.results-count {
-  font-size: 15px;
-  color: #555;
+.filter-section + .filter-section {
+  border-left: 1px solid var(--border-s);
+}
+
+/* ── Results count ─────────────────────────────────── */
+.results-section { min-width: 140px; }
+
+.results-label {
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
   font-weight: 500;
-  white-space: nowrap;
-  min-width: 180px;
+  line-height: 1;
+  margin-bottom: 3px;
 }
 
-.results-count span {
-  font-weight: 600;
-  color: #1a73e8;
+.results-value {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1;
 }
 
-.search-input-wrapper {
+/* ── Search ────────────────────────────────────────── */
+.search-section {
   flex: 1;
-  max-width: 520px;
-  position: relative;
-  margin: 0 20px;
+  padding: 8px 14px;
 }
+
+.search-inner {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  transition: color var(--t);
+}
+
+.search-inner:focus-within .search-icon { color: var(--accent); }
 
 .search-input {
   width: 100%;
-  padding: 12px 20px 12px 48px;
-  border: 2px solid #e0e0e0;
-  border-radius: 50px;
-  font-size: 16px;
-  transition: all 0.3s ease;
+  background: var(--bg-input);
+  border: 1px solid var(--border-s);
+  border-radius: var(--r-lg);
+  padding: 9px 14px 9px 38px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
   outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
 }
+
+.search-input::placeholder { color: var(--text-muted); }
 
 .search-input:focus {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-.search-button {
+/* ── Filters panel ─────────────────────────────────── */
+.filters-section {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px;
+}
+
+/* Custom select wrapper — власна стрілка */
+.select-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.select-wrap::after {
+  content: '';
   position: absolute;
-  left: 6px;
+  right: 11px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 8px;
-  color: #666;
-  transition: color 0.2s;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-muted);
+  pointer-events: none;
+  transition: border-color var(--t);
 }
 
-.search-button:hover {
-  color: #1a73e8;
-}
-
-.filters-panel {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+.select-wrap:focus-within::after { border-top-color: var(--accent); }
 
 .filter-select {
-  padding: 11px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 15px;
-  background-color: white;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--bg-input);
+  border: 1px solid var(--border-s);
+  border-radius: var(--r-lg);
+  padding: 8px 30px 8px 12px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
   cursor: pointer;
-  min-width: 160px;
-  transition: all 0.3s ease;
   outline: none;
+  min-width: 130px;
+  transition: border-color var(--t), color var(--t), box-shadow var(--t);
+}
+
+.filter-select:hover {
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .filter-select:focus {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* Адаптивність */
-@media (max-width: 992px) {
-  .search-filter-container {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 14px 18px;
+.filter-select option {
+  background: #1a2236;
+  color: var(--text);
+}
+
+/* ── Active filter pills ───────────────────────────── */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.active-filters:empty { display: none; }
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--accent-glow);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent-h);
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t);
+}
+
+.filter-pill:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 900px) {
+  .filter-bar {
+    grid-template-columns: 1fr;
   }
-  
-  .search-input-wrapper {
-    margin: 12px 0;
-    max-width: none;
+
+  .filter-section + .filter-section {
+    border-left: none;
+    border-top: 1px solid var(--border-s);
   }
-  
-  .results-count {
-    text-align: center;
-  }
+
+  .results-section { min-width: unset; }
+  .filters-section  { padding: 10px 14px; }
+}
+
+@media (max-width: 480px) {
+  .filter-select { min-width: unset; flex: 1; }
+  .filters-section { flex-wrap: wrap; }
 }
