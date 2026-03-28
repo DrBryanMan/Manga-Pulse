@@ -9,6 +9,7 @@
 @import url('./css/views/magazines.css');
 @import url('./css/views/magazine-detail.css');
 @import url('./css/views/issue.css');
+@import url('./css/views/calendar.css');
 
 /* Компоненти */
 @import url('./css/components/chips.css');
