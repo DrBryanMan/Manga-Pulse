@@ -16,6 +16,8 @@ router
   .on('/series/:id',                (_, p) => renderSeriesDetail(main, p))
   .on('/magazines',                 () => renderMagazines(main))
   .on('/magazines/:slug',           (_, p) => renderMagazineDetail(main, p))
+  .on('/magazines/:slug/series',    (_, p) => renderMagazineDetail(main, { ...p, subpage: 'series' }))
+  .on('/magazines/:slug/issues',    (_, p) => renderMagazineDetail(main, { ...p, subpage: 'issues' }))
   .on('/magazines/:slug/:issue',    (_, p) => renderIssue(main, p))
   .on('/calendar',                  () => renderCalendar(main))
   .notFound(                        () => renderHome(main))
