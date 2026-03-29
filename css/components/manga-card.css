@@ -12,6 +12,13 @@
   width: 100%; aspect-ratio: 2/3; object-fit: cover;
   background: var(--bg-2); display: block;
 }
+.manga-cover-placeholder {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 36px;
+  color: var(--text-muted);
+}
 .manga-body   { padding: 10px 12px; }
 .manga-title  { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .manga-meta   { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; justify-content: space-between; }
@@ -20,6 +27,9 @@
 .manga-ch.active  { color: var(--accent); }
 .manga-ch.hiatus  { color: var(--orange); }
 .manga-ch.done    { color: var(--text-muted); }
+.manga-card-placeholder {
+  pointer-events: none;
+}
 
 
 

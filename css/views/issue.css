@@ -28,6 +28,13 @@
   box-shadow: 0 8px 32px rgba(0,0,0,.35);
 }
 
+.issue-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .issue-cover-inner {
   display: flex;
   flex-direction: column;
@@ -201,6 +208,13 @@
   background: var(--bg-2);
 }
 
+.issue-thumb-placeholder {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
 .issue-series-info { min-width: 0; }
 
 .issue-series-title {
@@ -219,6 +233,13 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.issue-series-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .issue-ch {

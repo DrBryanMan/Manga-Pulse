@@ -136,6 +136,113 @@
 .mag-detail-main  {}
 .mag-detail-aside {}
 
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-btn {
+  margin-bottom: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.section-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-card));
+}
+
+.mag-subpage-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.mag-subpage-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.issue-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.issue-card {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border-s);
+  background: var(--bg-card);
+  text-decoration: none;
+  transition: all var(--t);
+}
+
+.issue-card:hover {
+  background: var(--bg-card-h);
+  border-color: var(--border);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,.1);
+}
+
+.issue-card.current {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.issue-card-cover {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+  background: var(--bg-2);
+}
+
+.issue-card-cover-placeholder {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 28px;
+  color: var(--text-muted);
+}
+
+.issue-card-body {
+  padding: 14px;
+}
+
+.issue-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.issue-card-number {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.issue-card-date {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.issue-card-meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 /* ── Issues list (aside) ───────────────────────────── */
 .mag-issues-list {
   display: flex;
@@ -199,6 +306,7 @@
 
   .mag-issues-list { flex-direction: row; flex-wrap: wrap; }
   .mag-issue-row   { flex: 1; min-width: 160px; }
+  .mag-subpage-head { align-items: flex-start; flex-direction: column; }
 }
 
 @media (max-width: 540px) {
