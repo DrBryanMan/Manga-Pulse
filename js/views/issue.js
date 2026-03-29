@@ -6,6 +6,7 @@ import {
   getPeriodicityMeta,
   parseIssueDate,
 } from '../helpers.js';
+import { icon } from '../icons.js';
 
 const fetchCache = {};
 const fetchOnce  = url => (fetchCache[url] ??= fetch(url).then(response => {
@@ -74,55 +75,68 @@ function resolveIssueFromParam(issues, rawIssue) {
   if (!issues.length) return null;
 
   const [yearPart, ...numberParts] = String(rawIssue ?? '').split('-');
-  const year = Number(yearPart);
-  const number = numberParts.join('-');
+  const parsedYear = Number(yearPart);
+  const hasYear    = Number.isInteger(parsedYear) && parsedYear > 0;
+  const number     = normalizeKey(numberParts.join('-'));
+  const rawValue   = normalizeKey(rawIssue);
 
   return issues.find(entry => {
     const releaseDate = parseIssueDate(entry.release_date);
     const entryYear   = releaseDate?.getFullYear();
+    const entryNumber = normalizeKey(entry.number);
+
     if (number) {
-      return entry.number === number && (!year || entryYear === year);
+      return entryNumber === number && (!hasYear || entryYear === parsedYear);
     }
-    return entry.number === rawIssue || String(entry.number) === String(rawIssue);
+
+    return entryNumber === rawValue;
   }) ?? null;
 }
 
 async function buildIssueSeries(issue, slug, oneshots) {
   const leadSet     = new Set((issue.lead ?? []).map(normalizeKey));
   const colorSet    = new Set((issue.color ?? []).map(normalizeKey));
+  const debSet      = new Set((issue.deb_fin?.deb ?? []).map(normalizeKey));
+  const finSet      = new Set((issue.deb_fin?.fin ?? []).map(normalizeKey));
   const seriesItems = await Promise.all(
-    (issue.series ?? []).map(seriesMalId => buildSeriesEntry(seriesMalId, issue, slug, leadSet, colorSet)),
+    (issue.series ?? []).map(seriesMalId => buildSeriesEntry(seriesMalId, issue, slug, leadSet, colorSet, debSet, finSet)),
   );
 
-  return insertOneshots(seriesItems, issue, slug, oneshots, leadSet, colorSet);
+  return insertOneshots(seriesItems, issue, oneshots, leadSet, colorSet, debSet, finSet);
 }
 
-async function buildSeriesEntry(seriesMalId, issue, slug, leadSet, colorSet) {
-  const detail = await findSeriesDetail(seriesMalId, slug);
+async function buildSeriesEntry(seriesMalId, issue, slug, leadSet, colorSet, debSet, finSet) {
+  const detail       = await findSeriesDetail(seriesMalId, slug);
   const chapterMatch = matchChapterByDate(detail?.chapters, issue.release_date);
-  const chapterNumber = chapterMatch
-    ? getChapterNumber(detail, chapterMatch.index)
-    : null;
+  const chapterTitle = chapterMatch?.chapter?.name ?? getSecondarySeriesLabel(detail);
+  const chapterPages = chapterMatch?.chapter?.pages ? Number(chapterMatch.chapter.pages) : null;
 
   return {
     kind:          'series',
     key:           normalizeKey(seriesMalId),
-    href:          detail?.mal_id ? `#/series/${detail.mal_id}` : '',
+    href:          getSeriesHref(detail),
     title:         detail?.title ?? `Серія ${seriesMalId}`,
     poster:        detail?.poster ?? '',
-    chapterTitle:  chapterMatch?.chapter?.name ?? 'Назва розділу ще не додана',
-    chapterNumber,
-    pages:         chapterMatch?.chapter?.pages ? Number(chapterMatch.chapter.pages) : null,
-    badges:        getIssueBadges(seriesMalId, leadSet, colorSet),
+    chapterTitle,
+    chapterNumber: chapterMatch
+      ? getChapterNumber(detail, chapterMatch.index)
+      : getSeriesChapterNumber(detail),
+    pages:         chapterPages,
+    badges:        getIssueBadges(seriesMalId, leadSet, colorSet, debSet, finSet),
   };
 }
 
-function insertOneshots(seriesItems, issue, slug, oneshots, leadSet, colorSet) {
-  const result = [...seriesItems];
-  const placements = parseOneshotPlacements(issue.oneshots);
+function insertOneshots(seriesItems, issue, oneshots, leadSet, colorSet, debSet, finSet) {
+  const result      = [...seriesItems];
+  const placements  = parseOneshotPlacements(issue.oneshots);
+  const oneshotById = new Map(
+    oneshots
+      .filter(item => normalizeKey(item?.mal_id))
+      .map(item => [normalizeKey(item.mal_id), item]),
+  );
 
   for (const placement of placements) {
-    const oneshot = oneshots.find(item => normalizeKey(item.mal_id) === placement.malId);
+    const oneshot = oneshotById.get(placement.malId);
     if (!oneshot) continue;
 
     const targetIndex = Math.max(0, Math.min(result.length, placement.order - 1));
@@ -136,7 +150,7 @@ function insertOneshots(seriesItems, issue, slug, oneshots, leadSet, colorSet) {
       chapterNumber: null,
       pages:         null,
       specialType:   getSpecialTypeLabel(oneshot.type),
-      badges:        getIssueBadges(placement.malId, leadSet, colorSet),
+      badges:        getIssueBadges(placement.malId, leadSet, colorSet, debSet, finSet),
     });
   }
 
@@ -158,7 +172,7 @@ function parseOneshotPlacements(rawPlacements = []) {
 
 async function findSeriesDetail(seriesKey, slug) {
   const normalizedKey = normalizeKey(seriesKey);
-  const cacheKey = `${slug}:${normalizedKey}`;
+  const cacheKey      = `${slug}:${normalizedKey}`;
   if (seriesDetailsCache.has(cacheKey)) {
     return seriesDetailsCache.get(cacheKey);
   }
@@ -175,7 +189,7 @@ async function findSeriesDetail(seriesKey, slug) {
 
 function matchChapterByDate(chapters = [], releaseDate) {
   const issueDate = parseIssueDate(releaseDate);
-  if (!issueDate) return null;
+  if (!issueDate || !Array.isArray(chapters)) return null;
 
   const index = chapters.findIndex(chapter => {
     const chapterDate = parseIssueDate(chapter.release_date);
@@ -195,6 +209,34 @@ function getChapterNumber(series, index) {
   ].some(Boolean);
 
   return startsAtZero ? index : index + 1;
+}
+
+function getSeriesChapterNumber(series) {
+  const chapter = Number(series?.chapter);
+  if (Number.isFinite(chapter) && chapter > 0) return chapter;
+
+  const chapters = Number(series?.chapters);
+  if (Number.isFinite(chapters) && chapters > 0) return chapters;
+
+  return null;
+}
+
+function getSeriesHref(detail) {
+  if (!detail) return '';
+  return detail.hikka_slug
+    ? `#/series/${detail.hikka_slug}`
+    : (detail.mal_id ? `#/series/${detail.mal_id}` : '');
+}
+
+function getSecondarySeriesLabel(detail) {
+  if (!detail) return 'Дані розділу ще не додані';
+
+  const altTitle = String(detail.title_ua ?? '').trim();
+  if (altTitle && altTitle !== String(detail.title ?? '').trim()) {
+    return altTitle;
+  }
+
+  return 'Дані розділу ще не додані';
 }
 
 function buildHTML({ mag, fallbackMag, pub, issue, series }) {
@@ -253,16 +295,7 @@ function buildHTML({ mag, fallbackMag, pub, issue, series }) {
 
       <div class="section">
         <div class="section-header">
-          <h2 class="section-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-              <line x1="8" y1="18" x2="21" y2="18"/>
-              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
-              <line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-            Серії в номері
-          </h2>
-          <span class="section-label">Порядок відповідає файлу журналу</span>
+          <h2 class="section-title">${icon('three-line')} Серії в номері</h2>
         </div>
 
         <div class="issue-list">
@@ -273,23 +306,32 @@ function buildHTML({ mag, fallbackMag, pub, issue, series }) {
   `;
 }
 
-function getIssueBadges(seriesKey, leadSet, colorSet) {
+function getIssueBadges(seriesKey, leadSet, colorSet, debSet, finSet) {
   const normalizedKey = normalizeKey(seriesKey);
   const badges = [];
-  if (leadSet.has(normalizedKey)) badges.push('lead');
+
+  if (debSet.has(normalizedKey))   badges.push('deb');
+  if (finSet.has(normalizedKey))   badges.push('fin');
+  if (leadSet.has(normalizedKey))  badges.push('lead');
   if (colorSet.has(normalizedKey)) badges.push('color');
+
   return badges;
 }
 
 function buildSeriesRow(series, position) {
-  const badges = series.badges.map(badge => `<span class="chip ${badge === 'lead' ? 'chip-new' : 'chip-ongoing'}">${badge === 'lead' ? 'Lead' : 'Color'}</span>`).join('');
-  const thumb  = series.poster
+  const badges = series.badges.map(badge => {
+    const meta = getBadgeMeta(badge);
+    return `<span class="chip issue-series-badge ${meta.className}">${meta.label}</span>`;
+  }).join('');
+
+  const thumb = series.poster
     ? `<img class="issue-thumb" src="${esc(series.poster)}" alt="${esc(series.title)}" loading="lazy">`
     : `<div class="issue-thumb issue-thumb-placeholder">?</div>`;
+
   const href = series.href || '#';
 
   return `
-    <a class="issue-row" href="${href}">
+    <a class="issue-row" href="${href}" data-mal-id="${esc(series.key)}" data-kind="${esc(series.kind)}">
       <div class="issue-pos">${position}</div>
       ${thumb}
       <div class="issue-series-info">
@@ -303,6 +345,17 @@ function buildSeriesRow(series, position) {
   `;
 }
 
+function getBadgeMeta(badge) {
+  const badgeMap = {
+    lead:  { label: 'Lead',  className: 'issue-series-badge-lead' },
+    color: { label: 'Color', className: 'issue-series-badge-color' },
+    deb:   { label: 'Debut', className: 'issue-series-badge-deb' },
+    fin:   { label: 'Final', className: 'issue-series-badge-fin' },
+  };
+
+  return badgeMap[badge] ?? { label: badge, className: 'issue-series-badge-color' };
+}
+
 function normalizeKey(value) {
   return String(value ?? '').trim();
 }
@@ -312,11 +365,11 @@ function getSpecialTypeLabel(type) {
   if (!normalized) return 'Спецвипуск';
 
   const labels = {
-    oneshot: 'Ваншот',
+    oneshot:  'Ваншот',
     one_shot: 'Ваншот',
-    special: 'Спецвипуск',
-    extra: 'Екстра',
-    pilot: 'Пілот',
+    special:  'Спецвипуск',
+    extra:    'Екстра',
+    pilot:    'Пілот',
   };
 
   return labels[normalized] ?? String(type);

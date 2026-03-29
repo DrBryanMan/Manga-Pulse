@@ -27,7 +27,7 @@ export async function renderMagazineDetail(container, { slug, subpage = '' }) {
     const [magazines, seriesCatalog, magazineAnalytics] = await Promise.all([
       fetchOnce('./data/magazines.json'),
       fetchOnce('./data/series.json'),
-      fetchOnce('./data/magazines/analytics.json'),
+      fetchOnce('./data/analytics_magazines.json'),
     ]);
 
     const mag = magazines.find(item => item.slug === slug);
@@ -269,8 +269,6 @@ function buildHTML({ mag, magazineData, pub, allSeries, activeSeries, subpage })
   }
 
   const visibleIssues = [...magazineData.issues];
-  const issueTitle    = 'Останні випуски';
-  const issueHint     = 'Останні додані випуски';
   const issueRows     = visibleIssues.reverse().map(issue => buildIssueRow(mag.slug, issue, magazineData.seriesIds.length, issue === visibleIssues[0])).join('');
   const seriesHTML    = buildSeriesGrid(activeSeries);
 
@@ -333,16 +331,7 @@ function buildHTML({ mag, magazineData, pub, allSeries, activeSeries, subpage })
           <div class="section">
             <div class="section-header">
               <div>
-                <h2 class="section-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                  </svg>
-                  ${issueTitle}
-                </h2>
-                <div class="section-label">${issueHint}</div>
+                <h2 class="section-title">${icon('calendar')} Останні випуски</h2>
               </div>
               <div class="section-actions">
                 <a class="back-btn section-btn" href="#/magazines/${esc(mag.slug)}/issues">Всі</a>
