@@ -1,142 +1,251 @@
+import {
+  LEGACY_FORMAT_LABELS,
+  PUBLISHER_META,
+  esc,
+  formatUkDate,
+  getPeriodicityMeta,
+  parseIssueDate,
+} from '../helpers.js';
+
 const fetchCache = {};
-const fetchOnce  = url => (fetchCache[url] ??= fetch(url).then(r => r.json()));
+const fetchOnce  = url => (fetchCache[url] ??= fetch(url).then(response => {
+  if (!response.ok) throw new Error(`Failed to load ${url}`);
+  return response.json();
+}));
 
-const PUBLISHER_META = {
-  shueisha:       { label: 'Shueisha',     color: '#e8453c' },
-  kodansha:       { label: 'Kodansha',     color: '#5b8dee' },
-  shogakukan:     { label: 'Shogakukan',   color: '#3ecf8e' },
-  hakusensha:     { label: 'Hakusensha',   color: '#a78bfa' },
-  'akita-shoten': { label: 'Akita Shoten', color: '#f0943e' },
-  'square-enix':  { label: 'Square Enix',  color: '#e2a74a' },
-};
+const seriesDetailsCache = new Map();
 
-const FORMAT_LABELS = {
-  weekly:   'Тижневий',
-  biweekly: 'Двотижневий',
-  monthly:  'Щомісячний',
-  digital:  'Цифровий',
-};
-
-const DOT_CLASS = {
-  'wsj':       'dot-wsj',
-  'sj-plus':   'dot-sjplus',
-  'morning':   'dot-morning',
-  'afternoon': 'dot-afternoon',
-  'young-animal': 'dot-ya',
-  'wss':       'dot-wss',
-  'wsm':       'dot-wsm',
-};
-
-// Subtitles for mock issue series rows
-const SUBTITLES = [
-  'Нова арка розпочалась', 'Вирішальна битва', 'Прихід нового ворога',
-  'Подорож продовжується', 'Несподіваний союз', 'Темне одкровення',
-  'Межа можливого', 'Серце монстра', 'Останній шанс',
-];
-
-// ── Entry point ──────────────────────────────────────
 export async function renderIssue(container, { slug, issue }) {
   container.innerHTML = `<div class="container page-body"><p style="color:var(--text-muted)">Завантаження…</p></div>`;
 
-  const [magazines, allSeries] = await Promise.all([
-    fetchOnce('./data/magazines.json'),
-    fetchOnce('./data/series.json'),
-  ]);
+  try {
+    const [magazines, oneshots] = await Promise.all([
+      fetchOnce('./data/magazines.json'),
+      fetchOnce('./data/oneshots.json'),
+    ]);
 
-  const mag = magazines.find(m => m.slug === slug);
-  if (!mag) {
-    container.innerHTML = `<div class="container page-body"><p>Журнал не знайдено.</p></div>`;
-    return;
+    const mag = magazines.find(item => item.slug === slug);
+    if (!mag) {
+      container.innerHTML = `<div class="container page-body"><p>Журнал не знайдено.</p></div>`;
+      return;
+    }
+
+    const magazineFile = await fetchMagazineFile(mag);
+    const issueTarget  = resolveIssueFromParam(magazineFile?.issues ?? [], issue);
+    if (!magazineFile || !issueTarget) {
+      container.innerHTML = `<div class="container page-body"><p style="color:var(--text-muted)">Випуск не знайдено.</p></div>`;
+      return;
+    }
+
+    const issueSeries = await buildIssueSeries(issueTarget, slug, oneshots);
+    const pub         = PUBLISHER_META[magazineFile.publisher ?? mag.publisher] ?? { label: mag.publisher, color: '#5b8dee' };
+
+    container.innerHTML = buildHTML({
+      mag: magazineFile,
+      fallbackMag: mag,
+      pub,
+      issue: issueTarget,
+      series: issueSeries,
+    });
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = `<div class="container page-body"><p style="color:var(--text-muted)">Не вдалося завантажити випуск.</p></div>`;
+  }
+}
+
+async function fetchMagazineFile(mag) {
+  const candidates = [
+    `./data/magazines/${mag.label}.json`,
+    `./data/magazines/${String(mag.slug).toUpperCase()}.json`,
+  ];
+
+  for (const url of candidates) {
+    try {
+      return await fetchOnce(url);
+    } catch {
+      continue;
+    }
   }
 
-  // Parse "2026-16" → year=2026, num=16
-  const [year, num] = (issue ?? '').split('-').map(Number);
-  const issueNum    = num  || 16;
-  const issueYear   = year || 2026;
-
-  // Series ranked by score, filtered for this magazine
-  const magSeries   = allSeries
-    .filter(s => s.magazine_slug === slug)
-    .sort((a, b) => b.score - a.score);
-
-  const issueDate   = buildIssueDate(mag, issueNum, issueYear);
-  const pub         = PUBLISHER_META[mag.publisher] ?? { label: mag.publisher, color: '#5b8dee' };
-
-  container.innerHTML = buildHTML(mag, pub, issueNum, issueYear, issueDate, magSeries);
+  return null;
 }
 
-// ── Date calculation ─────────────────────────────────
-function buildIssueDate(mag, num, year) {
-  const base = new Date(year, 2, 27); // ~March 27 for issue 16
-  const step = { weekly: 7, biweekly: 14, monthly: 30, digital: 7 }[mag.format] ?? 7;
-  base.setDate(base.getDate() - (16 - num) * step);
-  return base.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+function resolveIssueFromParam(issues, rawIssue) {
+  if (!issues.length) return null;
+
+  const [yearPart, ...numberParts] = String(rawIssue ?? '').split('-');
+  const year = Number(yearPart);
+  const number = numberParts.join('-');
+
+  return issues.find(entry => {
+    const releaseDate = parseIssueDate(entry.release_date);
+    const entryYear   = releaseDate?.getFullYear();
+    if (number) {
+      return entry.number === number && (!year || entryYear === year);
+    }
+    return entry.number === rawIssue || String(entry.number) === String(rawIssue);
+  }) ?? null;
 }
 
-// ── HTML builder ─────────────────────────────────────
-function buildHTML(mag, pub, num, year, dateStr, series) {
-  const coverBrand = mag.title.includes('Jump')  ? ['Weekly', 'Shōnen', 'JUMP'] :
-                     mag.title.includes('Sunday') ? ['Weekly', 'Shōnen', 'SUNDAY'] :
-                     mag.title.includes('Morning')? ['Weekly', 'MORNING', '']  :
-                     [mag.label, '', ''];
+async function buildIssueSeries(issue, slug, oneshots) {
+  const leadSet     = new Set((issue.lead ?? []).map(normalizeKey));
+  const colorSet    = new Set((issue.color ?? []).map(normalizeKey));
+  const seriesItems = await Promise.all(
+    (issue.series ?? []).map(seriesMalId => buildSeriesEntry(seriesMalId, issue, slug, leadSet, colorSet)),
+  );
 
-  const dotCls = DOT_CLASS[mag.slug] ?? '';
+  return insertOneshots(seriesItems, issue, slug, oneshots, leadSet, colorSet);
+}
 
-  const totalPages = series.reduce((acc, _, i) => acc + 16 + (i % 8), 0);
-  const specials   = Math.max(1, Math.floor(series.length / 5));
-  const newSeries  = Math.max(1, Math.floor(series.length / 8));
+async function buildSeriesEntry(seriesMalId, issue, slug, leadSet, colorSet) {
+  const detail = await findSeriesDetail(seriesMalId, slug);
+  const chapterMatch = matchChapterByDate(detail?.chapters, issue.release_date);
+  const chapterNumber = chapterMatch
+    ? getChapterNumber(detail, chapterMatch.index)
+    : null;
 
-  const seriesRows = series.map((s, i) => buildSeriesRow(s, i, mag.slug)).join('');
+  return {
+    kind:          'series',
+    key:           normalizeKey(seriesMalId),
+    href:          detail?.mal_id ? `#/series/${detail.mal_id}` : '',
+    title:         detail?.title ?? `Серія ${seriesMalId}`,
+    poster:        detail?.poster ?? '',
+    chapterTitle:  chapterMatch?.chapter?.name ?? 'Назва розділу ще не додана',
+    chapterNumber,
+    pages:         chapterMatch?.chapter?.pages ? Number(chapterMatch.chapter.pages) : null,
+    badges:        getIssueBadges(seriesMalId, leadSet, colorSet),
+  };
+}
 
-  const hiddenCount = Math.max(0, mag.series_count - series.length);
-  const hiddenRow   = hiddenCount > 0 ? `
-    <div class="issue-row-more">
-      <div class="issue-pos" style="color:var(--text-muted);font-size:11px">…</div>
-      <span>Ще ${hiddenCount} серій у цьому номері</span>
-    </div>` : '';
+function insertOneshots(seriesItems, issue, slug, oneshots, leadSet, colorSet) {
+  const result = [...seriesItems];
+  const placements = parseOneshotPlacements(issue.oneshots);
+
+  for (const placement of placements) {
+    const oneshot = oneshots.find(item => normalizeKey(item.mal_id) === placement.malId);
+    if (!oneshot) continue;
+
+    const targetIndex = Math.max(0, Math.min(result.length, placement.order - 1));
+    result.splice(targetIndex, 0, {
+      kind:          'oneshot',
+      key:           placement.malId,
+      href:          '',
+      title:         oneshot.title ?? `One-shot ${placement.malId}`,
+      poster:        oneshot.poster ?? '',
+      chapterTitle:  getSpecialTypeLabel(oneshot.type),
+      chapterNumber: null,
+      pages:         null,
+      specialType:   getSpecialTypeLabel(oneshot.type),
+      badges:        getIssueBadges(placement.malId, leadSet, colorSet),
+    });
+  }
+
+  return result;
+}
+
+function parseOneshotPlacements(rawPlacements = []) {
+  const placements = [];
+
+  for (let index = 0; index < rawPlacements.length; index += 2) {
+    const malId = normalizeKey(rawPlacements[index]);
+    const order = Number(rawPlacements[index + 1]);
+    if (!malId || !Number.isFinite(order)) continue;
+    placements.push({ malId, order });
+  }
+
+  return placements.sort((a, b) => a.order - b.order);
+}
+
+async function findSeriesDetail(seriesKey, slug) {
+  const normalizedKey = normalizeKey(seriesKey);
+  const cacheKey = `${slug}:${normalizedKey}`;
+  if (seriesDetailsCache.has(cacheKey)) {
+    return seriesDetailsCache.get(cacheKey);
+  }
+
+  try {
+    const detail = await fetchOnce(`./data/series/${normalizedKey}.json`);
+    seriesDetailsCache.set(cacheKey, detail);
+    return detail;
+  } catch {
+    seriesDetailsCache.set(cacheKey, null);
+    return null;
+  }
+}
+
+function matchChapterByDate(chapters = [], releaseDate) {
+  const issueDate = parseIssueDate(releaseDate);
+  if (!issueDate) return null;
+
+  const index = chapters.findIndex(chapter => {
+    const chapterDate = parseIssueDate(chapter.release_date);
+    return chapterDate && chapterDate.getTime() === issueDate.getTime();
+  });
+
+  if (index === -1) return null;
+  return { index, chapter: chapters[index] };
+}
+
+function getChapterNumber(series, index) {
+  const startsAtZero = [
+    series?.chapters_starts_at_zero,
+    series?.chapters_start_from_zero,
+    series?.chapter_start_from_zero,
+    series?.starts_from_zero,
+  ].some(Boolean);
+
+  return startsAtZero ? index : index + 1;
+}
+
+function buildHTML({ mag, fallbackMag, pub, issue, series }) {
+  const releaseDate  = parseIssueDate(issue.release_date);
+  const period       = getPeriodicityMeta(mag.format ?? fallbackMag.format);
+  const totalPages   = series.reduce((sum, item) => sum + (item.pages ?? 0), 0);
+  const leadCount    = series.filter(item => item.badges.includes('lead')).length;
+  const colorCount   = series.filter(item => item.badges.includes('color')).length;
+  const seriesRows   = series.map((item, index) => buildSeriesRow(item, index + 1)).join('');
 
   return `
     <div class="container page-body">
-      <a class="back-btn" href="#/magazines/${esc(mag.slug)}">← Назад до журналу</a>
+      <a class="back-btn" href="#/magazines/${esc(fallbackMag.slug)}">← Назад до журналу</a>
 
       <div class="issue-hero">
         <div class="issue-cover">
-          <div class="issue-cover-inner">
-            <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:${pub.color};text-transform:uppercase">${esc(coverBrand[0])}</div>
-            ${coverBrand[1] ? `<div class="issue-cover-brand">${esc(coverBrand[1])}</div>` : ''}
-            ${coverBrand[2] ? `<div class="issue-cover-brand" style="font-size:18px">${esc(coverBrand[2])}</div>` : ''}
-            <div class="issue-cover-num">#${num}</div>
-            <div class="issue-cover-year">${year}</div>
-          </div>
+          ${issue.poster
+            ? `<img class="issue-cover-image" src="${esc(issue.poster)}" alt="${esc(`Випуск ${issue.number}`)}" loading="lazy">`
+            : `<div class="issue-cover-inner">
+                <div class="issue-cover-num">#${esc(issue.number)}</div>
+                <div class="issue-cover-year">${releaseDate?.getFullYear() ?? '—'}</div>
+              </div>`}
         </div>
 
         <div class="issue-info">
-          <div class="issue-mag-lbl">${esc(mag.title)}</div>
-          <div class="issue-title">Випуск #${num} / ${year}</div>
-          <div class="issue-date">Дата виходу: <strong>${esc(dateStr)}</strong></div>
+          <div class="issue-mag-lbl">${esc(mag.title ?? fallbackMag.title)}</div>
+          <div class="issue-title">Випуск #${esc(issue.number)}</div>
+          <div class="issue-date">Дата виходу: <strong>${esc(releaseDate ? formatUkDate(releaseDate, { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }) : 'Невідомо')}</strong></div>
 
           <div class="issue-stats">
             <div class="issue-stat">
-              <div class="issue-stat-val">${mag.series_count}</div>
+              <div class="issue-stat-val">${series.length}</div>
               <div class="issue-stat-lbl">Серій</div>
             </div>
             <div class="issue-stat">
-              <div class="issue-stat-val">${totalPages}</div>
+              <div class="issue-stat-val">${totalPages || '—'}</div>
               <div class="issue-stat-lbl">Сторінок</div>
             </div>
             <div class="issue-stat">
-              <div class="issue-stat-val" style="color:var(--gold)">${specials}</div>
-              <div class="issue-stat-lbl">Спешлів</div>
+              <div class="issue-stat-val">${leadCount}</div>
+              <div class="issue-stat-lbl">Lead</div>
             </div>
             <div class="issue-stat">
-              <div class="issue-stat-val" style="color:var(--green)">${newSeries}</div>
-              <div class="issue-stat-lbl">Нових серій</div>
+              <div class="issue-stat-val">${colorCount}</div>
+              <div class="issue-stat-lbl">Color</div>
             </div>
           </div>
 
           <div class="issue-info-chips">
-            <span class="chip chip-weekly">${esc(FORMAT_LABELS[mag.format] ?? mag.format)}</span>
-            <span class="mag-chip"><span class="mag-dot ${dotCls}"></span>${esc(pub.label)}</span>
+            <span class="chip ${period?.chipClass ?? 'chip-weekly'}">${esc(period?.label ?? LEGACY_FORMAT_LABELS[fallbackMag.format] ?? String(mag.format ?? fallbackMag.format))}</span>
+            <span class="mag-chip">${esc(pub.label)}</span>
             <span class="chip chip-ongoing">Вийшов</span>
           </div>
         </div>
@@ -153,38 +262,62 @@ function buildHTML(mag, pub, num, year, dateStr, series) {
             </svg>
             Серії в номері
           </h2>
-          <span class="section-label">Порядок — рейтинг читачів</span>
+          <span class="section-label">Порядок відповідає файлу журналу</span>
         </div>
 
         <div class="issue-list">
-          ${seriesRows}
-          ${hiddenRow}
+          ${seriesRows || `<p style="color:var(--text-muted);padding:20px 0">Для цього випуску ще немає серій.</p>`}
         </div>
       </div>
     </div>
   `;
 }
 
-function buildSeriesRow(s, index, magSlug) {
-  const pos      = index + 1;
-  const posColor = pos === 1 ? 'var(--gold)' : pos === 2 ? 'var(--text-2)' : pos === 3 ? 'var(--orange)' : 'var(--text-muted)';
-  const posCls   = pos <= 3 ? ` pos-${pos}` : '';
-  const subtitle = SUBTITLES[s.id.length % SUBTITLES.length];
-  const pages    = 16 + (pos % 9);
+function getIssueBadges(seriesKey, leadSet, colorSet) {
+  const normalizedKey = normalizeKey(seriesKey);
+  const badges = [];
+  if (leadSet.has(normalizedKey)) badges.push('lead');
+  if (colorSet.has(normalizedKey)) badges.push('color');
+  return badges;
+}
+
+function buildSeriesRow(series, position) {
+  const badges = series.badges.map(badge => `<span class="chip ${badge === 'lead' ? 'chip-new' : 'chip-ongoing'}">${badge === 'lead' ? 'Lead' : 'Color'}</span>`).join('');
+  const thumb  = series.poster
+    ? `<img class="issue-thumb" src="${esc(series.poster)}" alt="${esc(series.title)}" loading="lazy">`
+    : `<div class="issue-thumb issue-thumb-placeholder">?</div>`;
+  const href = series.href || '#';
 
   return `
-    <a class="issue-row${posCls}" href="#/series/${esc(s.id)}">
-      <div class="issue-pos" style="color:${posColor}">${pos}</div>
-      <img class="issue-thumb" src="${esc(s.poster)}" alt="${esc(s.title)}" loading="lazy">
+    <a class="issue-row" href="${href}">
+      <div class="issue-pos">${position}</div>
+      ${thumb}
       <div class="issue-series-info">
-        <div class="issue-series-title">${esc(s.title)}</div>
-        <div class="issue-series-sub">${esc(subtitle)}</div>
+        <div class="issue-series-title">${esc(series.title)}</div>
+        <div class="issue-series-sub">${esc(series.chapterTitle)}</div>
+        ${badges ? `<div class="issue-series-badges">${badges}</div>` : ''}
       </div>
-      <div class="issue-ch">Розд. ${s.chapter}</div>
-      <div class="issue-pages">${pages} стор.</div>
+      <div class="issue-ch">${series.kind === 'oneshot' ? esc(series.specialType ?? 'Спецвипуск') : (series.chapterNumber !== null ? `Розд. ${series.chapterNumber}` : 'Розділ невідомий')}</div>
+      <div class="issue-pages">${series.pages ? `${series.pages} стор.` : '—'}</div>
     </a>
   `;
 }
 
-const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-const esc = s => String(s).replace(/[&<>"']/g, c => ESC_MAP[c]);
+function normalizeKey(value) {
+  return String(value ?? '').trim();
+}
+
+function getSpecialTypeLabel(type) {
+  const normalized = String(type ?? '').trim().toLowerCase();
+  if (!normalized) return 'Спецвипуск';
+
+  const labels = {
+    oneshot: 'Ваншот',
+    one_shot: 'Ваншот',
+    special: 'Спецвипуск',
+    extra: 'Екстра',
+    pilot: 'Пілот',
+  };
+
+  return labels[normalized] ?? String(type);
+}
