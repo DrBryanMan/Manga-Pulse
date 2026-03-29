@@ -40,19 +40,28 @@ export async function renderSeriesDetail(container, { id }) {
   </div>`;
 
   const all    = await fetchOnce('./data/series.json');
-  const series = all.find(s => s.id === id);
+  const routeId = String(id ?? '').trim();
+  const series = all.find(s => String(s.mal_id ?? s.id ?? s.hikka_slug ?? '').trim() === routeId);
 
   if (!series) {
     container.innerHTML = `<div class="container page-body"><p style="color:var(--text-muted)">Серію не знайдено.</p></div>`;
     return;
   }
 
-  const meta     = SERIES_META[id] ?? {};
+  const chapterTotal = Number(series.chapters_count ?? series.chapter ?? 0);
+  const normalizedSeries = {
+    ...series,
+    id: series.mal_id ?? series.id ?? routeId,
+    chapter: Number.isFinite(chapterTotal) && chapterTotal > 0 ? chapterTotal : 0,
+    score: Number(series.score),
+  };
+  const hikkaBase = String(series.hikka_slug ?? '').split('-').slice(0, -1).join('-');
+  const meta     = SERIES_META[hikkaBase || routeId] ?? {};
   const mag      = MAGAZINE_META[series.magazine_slug] ?? { label: series.magazine_slug, dotClass: '', href: '#/magazines/' + series.magazine_slug };
   const status   = STATUS_CHIPS[series.status] ?? { label: series.status, cls: '' };
-  const chapters = buildChapters(series.chapter);
+  const chapters = buildChapters(normalizedSeries.chapter);
 
-  container.innerHTML = buildDetailHTML(series, meta, mag, status, chapters);
+  container.innerHTML = buildDetailHTML(normalizedSeries, meta, mag, status, chapters);
 
   container.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => activateTab(container, btn.dataset.tab));
@@ -68,13 +77,14 @@ const CHAPTER_TITLES = [
 ];
 
 function buildChapters(latest, count = 7) {
+  const safeLatest = Number.isFinite(latest) && latest > 0 ? Math.floor(latest) : 0;
   const base = new Date('2026-03-27');
-  return Array.from({ length: Math.min(latest, count) }, (_, i) => {
+  return Array.from({ length: Math.min(safeLatest, count) }, (_, i) => {
     const date = new Date(base);
     date.setDate(date.getDate() - i * 7);
     return {
-      num:   latest - i,
-      pages: 16 + ((latest - i) % 11),
+      num:   safeLatest - i,
+      pages: 16 + ((safeLatest - i) % 11),
       date,
       isNew: i === 0,
     };
@@ -100,8 +110,8 @@ function buildDetailHTML(s, meta, mag, status, chapters) {
           </div>
           ${meta.desc ? `<div class="series-desc">${esc(meta.desc)}</div>` : ''}
           <div class="series-stats-row">
-            ${buildStat(s.chapter.toLocaleString('uk-UA'), 'Розділів')}
-            ${buildStat(`★ ${s.score.toFixed(2)}`, 'Рейтинг MAL', 'gold')}
+            ${buildStat(s.chapter > 0 ? s.chapter.toLocaleString('uk-UA') : '—', 'Розділів')}
+            ${buildStat(Number.isFinite(s.score) ? `★ ${s.score.toFixed(2)}` : '—', 'Рейтинг MAL', 'gold')}
             ${meta.year ? buildStat(String(meta.year), 'Рік початку') : ''}
             ${meta.releaseDay ? buildStat(meta.releaseDay, 'День виходу', 'green') : ''}
           </div>
@@ -167,6 +177,7 @@ function buildSchedulePanel(s, meta, mag) {
   const nextDate = s.next_chapter_date && s.status === 'active'
     ? formatDate(s.next_chapter_date)
     : null;
+  const nextChapterNumber = Number.isFinite(s.chapter) && s.chapter > 0 ? s.chapter + 1 : 1;
 
   return `
     <div class="sched-card">
@@ -181,7 +192,7 @@ function buildSchedulePanel(s, meta, mag) {
     <div class="sched-card">
       <div class="sched-lbl">Наступний вихід</div>
       <div style="font-size:20px;font-weight:700;color:var(--text);font-family:var(--font-head)">${nextDate}</div>
-      <div style="font-size:13px;color:var(--text-2);margin-top:6px">Розділ ${s.chapter + 1} · ${esc(mag.label)}</div>
+      <div style="font-size:13px;color:var(--text-2);margin-top:6px">Розділ ${nextChapterNumber} · ${esc(mag.label)}</div>
     </div>` : ''}
   `;
 }

@@ -241,7 +241,7 @@ function getLatestChapterDate(detail) {
 }
 
 function getSeriesHref(detail, legacy) {
-  const routeKey = detail?.slug ?? legacy?.hikka_slug ?? detail?.mal_id ?? legacy?.mal_id ?? '';
+  const routeKey = detail?.mal_id ?? legacy?.mal_id ?? detail?.slug ?? legacy?.hikka_slug ?? '';
   return routeKey ? `#/series/${routeKey}` : '';
 }
 

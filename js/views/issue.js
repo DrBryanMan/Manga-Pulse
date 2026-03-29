@@ -188,16 +188,27 @@ async function findSeriesDetail(seriesKey, slug) {
 }
 
 function matchChapterByDate(chapters = [], releaseDate) {
-  const issueDate = parseIssueDate(releaseDate);
-  if (!issueDate || !Array.isArray(chapters)) return null;
+  const issueDateKey = toDateKey(releaseDate);
+  if (!issueDateKey || !Array.isArray(chapters)) return null;
 
-  const index = chapters.findIndex(chapter => {
-    const chapterDate = parseIssueDate(chapter.release_date);
-    return chapterDate && chapterDate.getTime() === issueDate.getTime();
-  });
+  const index = chapters.findIndex(chapter => toDateKey(chapter.release_date) === issueDateKey);
 
   if (index === -1) return null;
   return { index, chapter: chapters[index] };
+}
+
+function toDateKey(value) {
+  const raw = String(value ?? '').trim();
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+
+  const parsed = parseIssueDate(value);
+  if (!parsed) return '';
+
+  const year = String(parsed.getFullYear());
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function getChapterNumber(series, index) {
@@ -223,9 +234,9 @@ function getSeriesChapterNumber(series) {
 
 function getSeriesHref(detail) {
   if (!detail) return '';
-  return detail.hikka_slug
-    ? `#/series/${detail.hikka_slug}`
-    : (detail.mal_id ? `#/series/${detail.mal_id}` : '');
+  return detail.mal_id
+    ? `#/series/${detail.mal_id}`
+    : (detail.hikka_slug ? `#/series/${detail.hikka_slug}` : '');
 }
 
 function getSecondarySeriesLabel(detail) {

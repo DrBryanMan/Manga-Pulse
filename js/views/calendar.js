@@ -269,7 +269,7 @@ function buildWeekCol(d, key, isToday) {
         const color = pubColor(mag);
 
         const covers = series.map(s => `
-          <a class="cal-cover-card" href="#/series/${esc(s.id)}">
+          <a class="cal-cover-card" href="#/series/${esc(s.mal_id ?? s.id ?? '')}">
             <img class="cal-cover-img" src="${esc(s.poster)}" alt="${esc(s.title)}" loading="lazy">
             <div class="cal-cover-info">
               <div class="cal-cover-title">${esc(s.title)}</div>
@@ -451,7 +451,7 @@ function renderPanel(key) {
     const mag   = magazineMap[slug];
     const color = pubColor(mag);
     const rows  = series.map(s => `
-      <a class="cal-panel-series" href="#/series/${esc(s.id)}">
+      <a class="cal-panel-series" href="#/series/${esc(s.mal_id ?? s.id ?? '')}">
         <img class="cal-panel-thumb" src="${esc(s.poster)}" alt="${esc(s.title)}" loading="lazy">
         <div class="cal-panel-series-info">
           <div class="cal-panel-series-title">${esc(s.title)}</div>

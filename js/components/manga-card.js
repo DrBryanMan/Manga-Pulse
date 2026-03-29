@@ -11,10 +11,11 @@ const TODAY = (() => {
  * @param {object} series - item from data/series.json
  * @returns {HTMLAnchorElement}
  */
-export function createMangaCard({ id, href, title, poster, magazine_slug, score, chapter, status, next_chapter_date }) {
+export function createMangaCard({ id, mal_id, href, title, poster, magazine_slug, score, chapter, status, next_chapter_date }) {
+  const routeId = id ?? mal_id ?? '';
   const a = document.createElement('a');
   a.className = 'manga-card';
-  a.href = href ?? `#/series/${id}`;
+  a.href = href ?? `#/series/${routeId}`;
 
   const scoreHTML = Number.isFinite(score)
     ? `<span class="manga-score">★ ${score.toFixed(2)}</span>`
