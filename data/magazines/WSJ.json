@@ -34,6 +34,16 @@
         },
         {
             "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
+            "release_date": "2025-06-30",
+            "number": "31",
+            "series": [183295,162479,13,135545,128085,183078,133545,131334,173944,182876,181804,171195,144034,174236,132845,158849,181151,171196,157875,178700],
+            "oneshots": [190098, "1"],
+            "lead": [183295],
+            "color": [183078,173944,132845],
+            "deb_fin": {"deb":[183295],"fin":[178700]}
+        },
+        {
+            "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
             "release_date": "",
             "number": "2",
             "series": [13]

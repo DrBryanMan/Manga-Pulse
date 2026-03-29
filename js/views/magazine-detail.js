@@ -10,7 +10,7 @@ import {
   getPeriodicityMeta,
   parseIssueDate,
 } from '../helpers.js';
-import { icon } from '../icons.js'
+import { icon } from '../icons.js';
 
 const fetchCache = {};
 const fetchOnce  = url => (fetchCache[url] ??= fetch(url).then(response => {
@@ -24,7 +24,7 @@ export async function renderMagazineDetail(container, { slug, subpage = '' }) {
   container.innerHTML = `<div class="container page-body"><p style="color:var(--text-muted)">Завантаження…</p></div>`;
 
   try {
-    const [magazines, legacySeries, magazineAnalytics] = await Promise.all([
+    const [magazines, seriesCatalog, magazineAnalytics] = await Promise.all([
       fetchOnce('./data/magazines.json'),
       fetchOnce('./data/series.json'),
       fetchOnce('./data/magazines/analytics.json'),
@@ -38,10 +38,11 @@ export async function renderMagazineDetail(container, { slug, subpage = '' }) {
 
     const detailedMagazine = await fetchMagazineFile(mag);
     const analytics        = magazineAnalytics[slug];
-    const magazineData     = buildMagazineViewModel(mag, detailedMagazine, analytics, legacySeries);
-    const allSeries        = analytics?.series?.length
-      ? await buildMagazineSeries(legacySeries, magazineData, slug)
-      : buildLegacySeries(legacySeries, slug);
+    const resolver         = createSeriesResolver(seriesCatalog, slug);
+    const magazineData     = buildMagazineViewModel(mag, detailedMagazine, analytics, seriesCatalog, resolver);
+    const allSeries        = magazineData.seriesIds.length
+      ? await buildMagazineSeries(seriesCatalog, magazineData, slug, resolver)
+      : buildFallbackSeries(seriesCatalog, slug, resolver);
     const activeSeries     = allSeries.filter(series => series.status === 'active');
     const selectedSubpage  = subpage === 'series' || subpage === 'issues' ? subpage : '';
 
@@ -76,15 +77,33 @@ async function fetchMagazineFile(mag) {
   return null;
 }
 
-function buildMagazineViewModel(mag, detailedMagazine, analytics = {}, legacySeries = []) {
+function buildMagazineViewModel(mag, detailedMagazine, analytics = {}, seriesCatalog = [], resolver) {
   const issues         = (detailedMagazine?.issues ?? []).filter(issue => issue?.number);
   const issuesWithDate = issues.filter(issue => parseIssueDate(issue.release_date));
   const firstIssue     = issuesWithDate[0] ?? null;
   const lastIssue      = issuesWithDate.at(-1) ?? null;
   const periodicity    = getPeriodicityMeta(detailedMagazine?.format ?? mag.format);
   const nextIssueDate  = lastIssue ? getNextIssueDate(lastIssue.release_date, detailedMagazine?.format ?? mag.format, detailedMagazine?.breaks ?? []) : null;
-  const fallbackSeries = legacySeries.filter(series => series.magazine_slug === mag.slug);
   const fallbackIssues = issues.length ? issues : generateFallbackIssues(mag);
+  const fallbackSeries = seriesCatalog.filter(series => series.magazine_slug === mag.slug);
+  const issueSeriesIds = [...new Set(
+    fallbackIssues
+      .flatMap(issue => issue.series ?? [])
+      .map(value => normalizeSeriesKey(value, resolver))
+      .filter(Boolean),
+  )];
+
+  const seriesIds = [...new Set(
+    (analytics.series ?? issueSeriesIds)
+      .map(value => normalizeSeriesKey(value, resolver))
+      .filter(Boolean),
+  )];
+
+  const ongoingIds = new Set(
+    (analytics.ongoings ?? [])
+      .map(value => normalizeSeriesKey(value, resolver))
+      .filter(Boolean),
+  );
 
   return {
     title:        detailedMagazine?.title ?? mag.title,
@@ -95,39 +114,44 @@ function buildMagazineViewModel(mag, detailedMagazine, analytics = {}, legacySer
     year:         firstIssue ? parseIssueDate(firstIssue.release_date)?.getFullYear() : mag.year,
     issuesCount:  fallbackIssues.length,
     issues:       fallbackIssues,
-    seriesIds:    analytics.series ?? fallbackSeries.map(series => series.id),
-    ongoingIds:   new Set(analytics.ongoings ?? []),
+    seriesIds:    seriesIds.length ? seriesIds : fallbackSeries.map(series => normalizeSeriesKey(series.mal_id, resolver)).filter(Boolean),
+    ongoingIds,
     nextIssue:    nextIssueDate ? `#${getNextIssueNumber(lastIssue?.number)} — ${formatUkDate(nextIssueDate, { day: 'numeric', month: 'long' })}` : (mag.next_issue ?? 'Невідомо'),
     nextLabel:    nextIssueDate ? 'Наступний номер' : (mag.next_label ?? 'Наступний номер'),
     periodicity,
   };
 }
 
-async function buildMagazineSeries(legacySeries, magazineData, slug) {
-  const legacyBySlug = new Map(legacySeries.map(series => [series.id, series]));
+async function buildMagazineSeries(seriesCatalog, magazineData, slug, resolver) {
+  const legacyByMalId = new Map(
+    seriesCatalog
+      .filter(series => series.magazine_slug === slug)
+      .map(series => [normalizeSeriesKey(series.mal_id, resolver), series]),
+  );
 
-  const result = await Promise.all(
+  return Promise.all(
     magazineData.seriesIds.map(async seriesKey => {
-      const detail = await findSeriesDetail(seriesKey, legacySeries, slug);
-      const legacy = detail?.legacyId ? legacyBySlug.get(detail.legacyId) : null;
+      const normalizedKey = normalizeSeriesKey(seriesKey, resolver);
+      const detail = await findSeriesDetail(normalizedKey, slug);
+      const legacy = legacyByMalId.get(normalizedKey) ?? null;
       const latestIssueWithSeries = [...magazineData.issues]
         .reverse()
-        .find(issue => issue.series?.includes(seriesKey) && parseIssueDate(issue.release_date));
+        .find(issue => (issue.series ?? []).map(value => normalizeSeriesKey(value, resolver)).includes(normalizedKey) && parseIssueDate(issue.release_date));
 
-      const status = magazineData.ongoingIds.has(seriesKey) ? 'active' : 'done';
-      const latestChapter = detail?.chapters ?? legacy?.chapter ?? null;
+      const status = magazineData.ongoingIds.has(normalizedKey) ? 'active' : (detail?.status ?? legacy?.status ?? 'done');
+      const latestChapter = getLatestChapterNumber(detail, legacy);
       const latestChapterDate = status === 'active'
         ? detail?.next_chapter_date ?? legacy?.next_chapter_date ?? null
-        : latestIssueWithSeries?.release_date ?? detail?.next_chapter_date ?? legacy?.next_chapter_date ?? null;
+        : latestIssueWithSeries?.release_date ?? getLatestChapterDate(detail) ?? legacy?.next_chapter_date ?? null;
 
       return {
-        key:               seriesKey,
-        id:                detail?.legacyId ?? legacy?.id ?? '',
-        href:              detail?.legacyId ?? legacy?.id ? `#/series/${detail?.legacyId ?? legacy?.id}` : '',
-        title:             detail?.title ?? legacy?.title ?? `Серія ${seriesKey}`,
+        key:               normalizedKey,
+        id:                detail?.mal_id ?? legacy?.mal_id ?? '',
+        href:              getSeriesHref(detail, legacy),
+        title:             detail?.title ?? legacy?.title ?? `Серія ${normalizedKey}`,
         title_ua:          detail?.title_ua ?? legacy?.title_ua ?? '',
         poster:            detail?.poster ?? legacy?.poster ?? '',
-        magazine_slug:     legacy?.magazine_slug ?? 'wsj',
+        magazine_slug:     legacy?.magazine_slug ?? slug,
         score:             legacy?.score ?? null,
         chapter:           latestChapter,
         status,
@@ -135,42 +159,31 @@ async function buildMagazineSeries(legacySeries, magazineData, slug) {
       };
     }),
   );
-
-  return result;
 }
 
-async function findSeriesDetail(seriesKey, legacySeries, slug) {
+async function findSeriesDetail(seriesKey, slug) {
   const cacheKey = `${slug}:${seriesKey}`;
   if (seriesDetailsCache.has(cacheKey)) {
     return seriesDetailsCache.get(cacheKey);
   }
 
-  const candidates = legacySeries
-    .filter(series => series.magazine_slug === slug)
-    .map(series => ({ legacyId: series.id, url: `./data/series/${series.id}-${seriesKey}.json` }));
-
-  for (const candidate of candidates) {
-    try {
-      const detail = await fetchOnce(candidate.url);
-      const resolved = { ...detail, legacyId: candidate.legacyId };
-      seriesDetailsCache.set(cacheKey, resolved);
-      return resolved;
-    } catch {
-      continue;
-    }
+  try {
+    const detail = await fetchOnce(`./data/series/${seriesKey}.json`);
+    seriesDetailsCache.set(cacheKey, detail);
+    return detail;
+  } catch {
+    seriesDetailsCache.set(cacheKey, null);
+    return null;
   }
-
-  seriesDetailsCache.set(cacheKey, null);
-  return null;
 }
 
-function buildLegacySeries(legacySeries, slug) {
-  return legacySeries
+function buildFallbackSeries(seriesCatalog, slug, resolver) {
+  return seriesCatalog
     .filter(series => series.magazine_slug === slug)
     .map(series => ({
-      key:               series.id,
-      id:                series.id,
-      href:              `#/series/${series.id}`,
+      key:               normalizeSeriesKey(series.mal_id, resolver),
+      id:                series.mal_id ?? '',
+      href:              getSeriesHref(null, series),
       title:             series.title,
       title_ua:          series.title_ua ?? '',
       poster:            series.poster ?? '',
@@ -179,7 +192,57 @@ function buildLegacySeries(legacySeries, slug) {
       chapter:           series.chapter ?? null,
       status:            series.status ?? 'done',
       next_chapter_date: series.next_chapter_date ?? null,
-    }));
+    }))
+    .filter(series => series.key);
+}
+
+function createSeriesResolver(seriesCatalog, slug) {
+  const aliases = new Map();
+
+  seriesCatalog
+    .filter(series => series.magazine_slug === slug)
+    .forEach(series => {
+      const malId = normalizeSeriesKey(series.mal_id);
+      if (!malId) return;
+
+      aliases.set(malId, malId);
+      if (series.hikka_slug) aliases.set(String(series.hikka_slug), malId);
+      if (series.id) aliases.set(String(series.id), malId);
+
+      const suffix = String(series.hikka_slug ?? '').split('-').filter(Boolean).at(-1);
+      if (suffix) aliases.set(suffix, malId);
+    });
+
+  return value => aliases.get(String(value ?? '').trim()) ?? normalizeSeriesKey(value);
+}
+
+function getLatestChapterNumber(detail, legacy) {
+  if (Array.isArray(detail?.chapters) && detail.chapters.length) {
+    const startsAtZero = [
+      detail?.chapters_starts_at_zero,
+      detail?.chapters_start_from_zero,
+      detail?.chapter_start_from_zero,
+      detail?.starts_from_zero,
+    ].some(Boolean);
+    return startsAtZero ? detail.chapters.length - 1 : detail.chapters.length;
+  }
+
+  return legacy?.chapter ?? null;
+}
+
+function getLatestChapterDate(detail) {
+  if (!Array.isArray(detail?.chapters)) return null;
+
+  const dated = [...detail.chapters]
+    .reverse()
+    .find(chapter => parseIssueDate(chapter.release_date));
+
+  return dated?.release_date ?? null;
+}
+
+function getSeriesHref(detail, legacy) {
+  const routeKey = detail?.slug ?? legacy?.hikka_slug ?? detail?.mal_id ?? legacy?.mal_id ?? '';
+  return routeKey ? `#/series/${routeKey}` : '';
 }
 
 function generateFallbackIssues(mag) {
@@ -205,8 +268,7 @@ function buildHTML({ mag, magazineData, pub, allSeries, activeSeries, subpage })
     return buildSubpageHTML({ mag, allSeries, issues: [...magazineData.issues].reverse(), subpage });
   }
 
-  const visibleIssues = [...magazineData.issues]
-  // const visibleIssues = [...magazineData.issues].slice(-5).reverse();
+  const visibleIssues = [...magazineData.issues];
   const issueTitle    = 'Останні випуски';
   const issueHint     = 'Останні додані випуски';
   const issueRows     = visibleIssues.reverse().map(issue => buildIssueRow(mag.slug, issue, magazineData.seriesIds.length, issue === visibleIssues[0])).join('');
@@ -257,8 +319,7 @@ function buildHTML({ mag, magazineData, pub, allSeries, activeSeries, subpage })
           <div class="section">
             <div class="section-header">
               <div>
-                <h2 class="section-title">${icon('three-line')} Поточні серії (${activeSeries.length})
-                </h2>
+                <h2 class="section-title">${icon('three-line')} Поточні серії (${activeSeries.length})</h2>
               </div>
               <div class="section-actions">
                 <a class="back-btn section-btn" href="#/magazines/${esc(mag.slug)}/series">Всі</a>
@@ -407,4 +468,9 @@ function getNextIssueNumber(currentNumber = '') {
   const numericParts = String(currentNumber).match(/\d+/g) ?? [];
   if (!numericParts.length) return '?';
   return Number(numericParts.at(-1)) + 1;
+}
+
+function normalizeSeriesKey(value, resolver = null) {
+  const normalized = String(value ?? '').trim();
+  return resolver ? resolver(normalized) : normalized;
 }
