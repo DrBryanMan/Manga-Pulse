@@ -12,34 +12,37 @@
     "double": ["2026-03-18"],
     "issues": [
         {
-            "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/0/77/5126742-3765192663-Sh%25C5.jpg",
-            "release_date": "",
-            "number": "1",
-            "series": ["f180bc"]
-        },
-        {
             "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
-            "release_date": "",
-            "number": "2",
-            "series": ["f180bc"]
-        },
-        {
-            "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
-            "release_date": "2026-03-11",
-            "number": "14-15",
-            "series": ["f180bc"]
+            "release_date": "2026-03-25",
+            "number": "17",
+            "series": [13, 113138],
+            "oneshots": [190098, "1"],
+            "lead": [13],
+            "color": [13, 113138]
         },
         {
             "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
             "release_date": "2026-03-18",
             "number": "16",
-            "series": ["f180bc", "bfcf4f"]
+            "series": [13, 113138]
         },
         {
             "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
-            "release_date": "2026-03-25",
-            "number": "17",
-            "series": ["f180bc", "bfcf4f"]
+            "release_date": "2026-03-11",
+            "number": "14-15",
+            "series": [13]
+        },
+        {
+            "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
+            "release_date": "",
+            "number": "2",
+            "series": [13]
+        },
+        {
+            "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/0/77/5126742-3765192663-Sh%25C5.jpg",
+            "release_date": "",
+            "number": "1",
+            "series": [13]
         }
     ]
 }
