@@ -1,0 +1,19 @@
+{
+  "mal_id": 13,
+  "slug": "one-piece-f180bc",
+  "poster": "https://cdn.hikka.io/content/manga/one-piece-f180bc/Gtp0FGFvfngwVWB3cSEPHg.jpg",
+  "title": "One Piece",
+  "title_ua": "Ван Піс",
+  "magazine_slug": "wsj",
+  "score": 9.21,
+  "volumes": 105,
+  "status": "active",
+  "next_chapter_date": "today",
+  "chapters_breaks": [],
+  "chapters": [
+    { "name": "На зорі романтики", "release_date": "" },
+    { "name": "На зорі романтики", "release_date": "" },
+    { "name": "На Ельбаф", "release_date": "2026-03-25", "pages": "12"},
+    { "name": "На зорі романтики", "release_date": "" }
+  ]
+}
