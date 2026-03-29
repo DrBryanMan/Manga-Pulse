@@ -242,6 +242,47 @@
   margin-top: 8px;
 }
 
+.issue-series-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+}
+
+.issue-series-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background: currentColor;
+}
+
+.issue-series-badge-lead {
+  color: #f5c26b;
+  background: color-mix(in srgb, #f5c26b 14%, transparent);
+  border-color: color-mix(in srgb, #f5c26b 38%, transparent);
+}
+
+.issue-series-badge-color {
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 14%, transparent);
+  border-color: color-mix(in srgb, var(--cyan) 38%, transparent);
+}
+
+.issue-series-badge-deb {
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  border-color: color-mix(in srgb, var(--green) 38%, transparent);
+}
+
+.issue-series-badge-fin {
+  color: #ff7c7c;
+  background: color-mix(in srgb, #ff7c7c 14%, transparent);
+  border-color: color-mix(in srgb, #ff7c7c 38%, transparent);
+}
+
 .issue-ch {
   font-family: var(--font-mono);
   font-size: 12px;
