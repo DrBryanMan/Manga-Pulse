@@ -156,14 +156,14 @@
 .issue-list {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
 }
 
 .issue-row {
   display: grid;
-  grid-template-columns: 36px 48px 1fr auto auto;
+  grid-template-columns: 80px auto 1fr auto auto;
   align-items: center;
-  gap: 12px;
+  gap: 1em;
   padding: 10px 14px;
   border-radius: var(--r-lg);
   border: 1px solid transparent;
@@ -172,9 +172,32 @@
   transition: all var(--t);
 }
 
-.issue-row:hover {
-  background: var(--bg-card-h);
-  border-color: var(--border-s);
+.issue-row.has-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  &:hover:before {
+    opacity: .3;
+  }
+}
+
+.issue-row.has-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+	  linear-gradient(to right, var(--bg-card) 20%, transparent 50%, var(--bg-card) 80%),
+	  var(--banner) right center / cover no-repeat;
+  z-index: 1;
+  pointer-events: none;
+	opacity: .1;
+  transition: opacity var(--t-slow);
+}
+
+.issue-row.has-banner > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Highlighted positions */
@@ -193,15 +216,16 @@
 
 .issue-pos {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-muted);
   text-align: center;
 }
 
 .issue-thumb {
-  width: 48px;
-  height: 64px;
+	width: 60px;
+	height: auto;
+	aspect-ratio: 2/3;
   object-fit: cover;
   border-radius: var(--r);
   border: 1px solid var(--border-s);
@@ -238,49 +262,31 @@
 .issue-series-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  justify-content: center;
+	gap: 5px;
 }
 
 .issue-series-badge {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .05em;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  padding: 2px 8px;
+  padding: 3px 6px;
+	border-radius: var(--r);
+  background: color-mix(in srgb, currentcolor 10%, transparent);
 }
 
-.issue-series-badge::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 6px;
-  background: currentColor;
+.badge-color {
+  color: var(--pink);
 }
-
-.issue-series-badge-lead {
+.badge-lead {
   color: #f5c26b;
-  background: color-mix(in srgb, #f5c26b 14%, transparent);
-  border-color: color-mix(in srgb, #f5c26b 38%, transparent);
 }
-
-.issue-series-badge-color {
-  color: var(--cyan);
-  background: color-mix(in srgb, var(--cyan) 14%, transparent);
-  border-color: color-mix(in srgb, var(--cyan) 38%, transparent);
-}
-
-.issue-series-badge-deb {
+.badge-deb {
   color: var(--green);
-  background: color-mix(in srgb, var(--green) 14%, transparent);
-  border-color: color-mix(in srgb, var(--green) 38%, transparent);
 }
-
-.issue-series-badge-fin {
+.badge-fin {
   color: #ff7c7c;
-  background: color-mix(in srgb, #ff7c7c 14%, transparent);
-  border-color: color-mix(in srgb, #ff7c7c 38%, transparent);
 }
 
 .issue-ch {

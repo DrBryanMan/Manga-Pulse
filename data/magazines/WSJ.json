@@ -16,7 +16,7 @@
     ],
     "issues": [
         {
-            "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
+            "poster": "https://static.wikia.nocookie.net/weeky-shonen-jump/images/d/d0/WSJ_Issue_2026_17_Cover.png",
             "release_date": "2026-03-25",
             "number": "17",
             "series": [13, 113138],
@@ -40,8 +40,7 @@
             "poster": "https://comicvine.gamespot.com/a/uploads/scale_small/13/136525/6069695-2.jpg",
             "release_date": "2025-06-30",
             "number": "31",
-            "series": [162479, 183295, 13, 135545, 128085, 183078, 133545, 131334, 173944, 182876, 181804, 171195, 144034, 174236, 132845, 158849, 181151, 171196, 157875, 178700],
-            "oneshots": [190098, "1"],
+            "series": [183295, 162479, 13, 135545, 128085, 183078, 133545, 131334, 173944, 182876, 181804, 171195, 144034, 174236, 132845, 158849, 181151, 171196, 157875, 178700],
             "lead": [183295],
             "color": [183078, 173944, 132845],
             "deb_fin": {
